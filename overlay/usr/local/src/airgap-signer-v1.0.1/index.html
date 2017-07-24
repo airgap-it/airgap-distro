@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>AirGap.it - Offline Ethereum Signer</title>
+    <link rel="stylesheet" href="./static/styles/bulma.css">
+    <style>
+        .modal-background {
+            background-color: grey;
+        }
+
+        .identicon {
+            width: 100%;
+            height: auto;
+            padding-bottom: 100%;
+            background-size: cover;
+            background-repeat: no-repeat;
+            border-radius: 50%;
+            -webkit-box-shadow: inset hsla(0, 0%, 100%, .5) 0 2px 2px, inset rgba(0, 0, 0, .6) 0 -1px 8px;
+            box-shadow: inset 0 2px 2px hsla(0, 0%, 100%, .5), inset 0 -1px 8px rgba(0, 0, 0, .6);
+        }
+    </style>
+</head>
+
+<body>
+<nav class="navbar ">
+    <div class="navbar-brand">
+        <a class="navbar-item" href="#">
+            <img src="./static/images/airgap_logo.png" height="28">
+        </a>
+        <div class="navbar-menu">
+            <div class="navbar-start">
+                <a href="#" class="navbar-item">
+                    Signer
+                </a>
+            </div>
+
+            <div class="navbar-end">
+                <a href="#" class="navbar-item" onclick="showModal('disclaimer_modal')">
+                    Disclaimer
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+<section class="section">
+    <div class="container">
+        <h1 class="title">AirGap.it - Offline Ethereum Transaction Signer</h1>
+        <h2 class="subtitle">
+            An opensource easy to review Ethereum transaction signer. Intended to be used for air-gapped setups.
+        </h2>
+
+        <video id="preview" style="height:400px;width:100%;display:none;"></video>
+        <br/>
+
+        <form id="transaction_form">
+            <div class="media">
+                <figure class="media-left">
+                    <p class="image is-64x64">
+                        <img class="identicon" id="to_identicon">
+                    </p>
+                </figure>
+                <div class="media-content">
+                    <div class="content">
+                        <label class="label">To Address</label>
+                        <div class="field has-addons">
+                            <p class="control is-expanded">
+                                <input required pattern="0x[0-9a-fA-F]{40}" id="tx_to_address" class="input"
+                                       type="text"
+                                       placeholder="0x77A562Df2B17E8b0aa78571597a78b32D7d5c86E">
+                                <span id="tx_to_address_error" class="help is-danger" style="display:none;">This address is invalid</span>
+                            </p>
+                            <p class="control">
+                                <a id="startScan" class="button is-info" onclick="startScan()"
+                                   style="display:table;margin: 0 auto;">Scan QR</a>
+                                <a id="stopScan" class="button is-danger" onclick="stopScan()"
+                                   style="display:none;margin: 0 auto;">Stop</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <br/>
+
+            <div class="field">
+                <label class="label">Amount to Send</label>
+                <div class="field has-addons">
+                    <p class="control is-expanded">
+                        <input required id="tx_amount" class="input" type="number" placeholder="0.01">
+                    </p>
+                    <p class="control">
+                        <a class="button is-static">
+                            ETH
+                        </a>
+                    </p>
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">Gas Limit</label>
+                <p class="control">
+                    <input required id="tx_gas_limit" class="input" type="number" placeholder="21000" value="21000">
+                </p>
+            </div>
+            <div class="field">
+                <label class="label">Gas Price</label>
+                <div class="field has-addons">
+                    <p class="control is-expanded">
+                        <input required id="tx_gas_price" class="input" type="number" placeholder="1" value="1">
+                    </p>
+                    <p class="control">
+                        <a class="button is-static">
+                            GWEI
+                        </a>
+                    </p>
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">Nonce</label>
+                <p class="control">
+                    <input required id="tx_nonce" class="input" type="number" placeholder="1">
+                </p>
+            </div>
+            <div class="field">
+                <label class="label">Data (optional)</label>
+                <p class="control">
+                    <input pattern="0x[0-9a-fA-F]*" id="tx_data" class="input" type="text"
+                           placeholder="0x61697267611702e697420726f636b7321">
+                </p>
+            </div>
+
+            <div class="columns">
+                <div class="column">
+                    <div class="field">
+                        <label class="label">Wallet Unlock Method</label>
+                        <p class="control">
+                        <div class="select">
+                            <select id="unlock_selector">
+                                <option selected disabled value="">-- Select Option --</option>
+                                <option value="keystore_unlock">Keystore File (UTC / JSON)</option>
+                                <option value="private_key_unlock">Private Key</option>
+                                <option value="mnemonic_unlock">Mnemonic Phrase</option>
+                            </select>
+                        </div>
+                        </p>
+                    </div>
+                </div>
+                <div class="column">
+                    <div id="mnemonic_unlock" class="unlock_method" style="display: none">
+                        <div class="field">
+                            <label class="label">Mnemonic Code</label>
+                            <p class="control">
+                            <textarea id="mnemonic_unlock_mnemonic" class="textarea required_unlock_field"
+                                      placeholder="elbow lobster slab upper vacant mutual punch sponsor glow faith custom neglect sell announce awkward"></textarea>
+                            </p>
+                        </div>
+                        <label class="label">Derivation Path</label>
+                        <p class="control">
+                            <input id="mnemonic_unlock_derivation_path" class="input required_unlock_field"
+                                   type="text"
+                                   placeholder="m/44'/60'/0'/0" value="m/44'/60'/0'/0">
+                        </p>
+                        <label class="label">Passphrase (optional)</label>
+                        <p class="control">
+                            <input id="mnemonic_unlock_passphrase" class="input" type="password"
+                                   placeholder="a secret passphrase">
+                        </p>
+
+                    </div>
+                    <div id="private_key_unlock" class="unlock_method" style="display: none">
+                        <div class="field">
+                            <label class="label">Private Key</label>
+                            <p class="control">
+                            <textarea id="private_key_unlock_key" class="textarea required_unlock_field"
+                                      placeholder="0x395f32eea9d43817764e91ba32684369c59506d6a46ef4fbf4460fb501e76694"></textarea>
+                            </p>
+                        </div>
+                    </div>
+                    <div id="keystore_unlock" class="unlock_method" style="display: none">
+                        <div class="field">
+                            <label class="label">Keystore File (UTC / JSON)</label>
+                            <p class="control">
+                                <input class="input required_unlock_field" type="file" id="keystore_unlock_file">
+                            </p>
+                        </div>
+                        <label class="label">Passphrase (optional)</label>
+                        <p class="control">
+                            <input class="input" type="password" placeholder="a secret passphrase"
+                                   id="keystore_unlock_passphrase">
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="block">
+                <button type="submit" id="generate_and_sign_button" class="button is-primary" onsubmit=""
+                        style="display: none">Generate and Sign
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<div id="error_modal" class="modal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title">Error</p>
+            <button class="delete" onclick="dismissModal('error_modal')"></button>
+        </header>
+        <section class="modal-card-body">
+            <span id="error_message"></span>
+            <!-- Content ... -->
+        </section>
+        <footer class="modal-card-foot">
+            <a class="button" onclick="dismissModal('error_modal')">Cancel</a>
+        </footer>
+    </div>
+</div>
+
+<div id="confirm_modal" class="modal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title">Your Signed Transaction</p>
+            <button class="delete" onclick="dismissModal('confirm_modal')"></button>
+        </header>
+        <section class="modal-card-body">
+            <div class="columns is-fullwidth">
+                <div class="column">
+                    <p class="image is-64x64">
+                        <img class="identicon" id="from_identicon_confirm">
+                    </p>
+                </div>
+                <div class="column has-text-centered">
+                    <large>&#8594;</large>
+                    <br>
+                    <large>Amount: <strong><span id="amount_confirm"></span></strong> ETH</large>
+                    <br>
+                    <small>Fee: <strong><span id="fee_confirm"></span></strong> ETH</small>
+                </div>
+                <div class="column">
+                    <p class="image is-64x64 is-pulled-right">
+                        <img class="identicon" id="to_identicon_confirm">
+                    </p>
+                </div>
+            </div>
+            <div class="columns">
+                <div class="column is-half is-offset-one-quarter">
+                    <figure class="image is-square">
+                        <img id="qr_holder" src="#">
+                    </figure>
+                </div>
+            </div>
+        </section>
+        <footer class="modal-card-foot">
+            <a class="button" onclick="dismissModal('error_modal')">Cancel</a>
+        </footer>
+    </div>
+</div>
+
+<div id="disclaimer_modal" class="modal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title">Disclaimer</p>
+            <button class="delete" onclick="dismissModal('disclaimer_modal')"></button>
+        </header>
+        <section class="modal-card-body">
+            <p>
+                Be safe & secure: We highly recommend that you read our guide on How to Prevent Loss & Theft for
+                some
+                recommendations on how to be proactive about your security.
+            </p>
+
+            <p>
+                Always backup your keys on paper: AirGap is not using any form of persistence, if you forget to
+                write
+                down
+                your keys, they're gone forever. There's no going back.
+            </p>
+
+            <p>
+                We are not responsible for any loss: Ethereum, AirGap.it Signer and AirGap.it Broadcaster, and some
+                of
+                the
+                underlying
+                Javascript libraries we use are under active development. While we have thoroughly tested & tens of
+                thousands of
+                wallets have been successfully created by people all over the globe, there is always the possibility
+                something
+                unexpected happens that causes your funds to be lost. Please do not invest more than you are willing
+                to
+                lose, and
+                please be careful.
+            </p>
+
+            <p>
+                Translations of AirGap.it: The community has done an amazing job translating AirGap.it into a
+                variety of
+                languages. However, AirGap.it can only verify the validity and accuracy of the information provided
+                in
+                English
+                and, because of this, the English version of our website is the official text.
+            </p>
+
+            <p>
+                MIT License Copyright © 2017 AirGap.it
+            </p>
+            <p>
+                Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+                associated
+                documentation files (the "Software"), to deal in the Software without restriction, including without
+                limitation the
+                rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+                Software,
+                and
+                to
+                permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+                The above copyright notice and this permission notice shall be included in all copies or substantial
+                portions of the
+                Software.
+            </p>
+            <p>
+                THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+                NOT
+                LIMITED TO THE
+                WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
+                SHALL
+                THE
+                AUTHORS
+                OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+                CONTRACT,
+                TORT OR
+                OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+                THE
+                SOFTWARE.
+            </p>
+        </section>
+        <footer class="modal-card-foot">
+            <a class="button" onclick="dismissModal('disclaimer_modal')">OK</a>
+        </footer>
+    </div>
+</div>
+
+<script src="static/bundle.js"></script>
+<footer class="footer">
+    <div class="container">
+        <div class="content has-text-centered">
+            <p>
+                <strong>AirGap.it</strong> v.1.0.1. The source code is licensed MIT.
+            </p>
+        </div>
+    </div>
+</footer>
+</body>
+</html>
