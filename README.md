@@ -33,15 +33,15 @@ sdf                                8:80   1   7.4G  1 disk
 AirGap is built with `TKLDev`_, the TurnKey GNU/Linux build system.
 
 1) Deploy TKLDev (e.g., as a local VM)
-2) SSH into TKLDev and clone the AirGap git repo::
+2) SSH into TKLDev and clone the AirGap git repo:
 
-	ssh tkldev
-	cd products
-	git-clone https://github.com/airgap-it/airgap-distro.git 
-
-	cd airgap-distro
-	make
-
+```
+$ ssh tkldev
+$ cd products
+$ git-clone https://github.com/airgap-it/airgap-distro.git 
+$ cd airgap-distro
+$ make
+```
 ## Credits
 
 This project was inspired by BitKey. The distribution as well as this readme have been created based on their work.
