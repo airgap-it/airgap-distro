@@ -60077,20 +60077,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
   var WEIINETHER = 1000000000000000000;
   var WEIINGWEI = 1000000000;
 
-  var numberToEthereumHex = function numberToEthereumHex(payload) {
-    try {
-      var number;
-      if (isNaN(payload)) {
-        number = parseInt(payload);
-      } else {
-        number = payload;
-      }
-      return '0x' + number.toString(16);
-    } catch (e) {
-      return '0x';
-    }
-  };
-
   var validateAddress = new RegExp('^(0x)?[0-9a-fA-F]{40}$');
 
   var scanner;
@@ -60136,15 +60122,18 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
   // -- Important part for Review ---
   window.generateAndSignTransaction = function (successCallback, errorCallback) {
+    var donate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+    var donateValue = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0;
+
     try {
       window.unlockWallet(function (wallet) {
 
         var txParams = {
-          nonce: numberToEthereumHex(document.getElementById('tx_nonce').value),
-          gasPrice: numberToEthereumHex(document.getElementById('tx_gas_price').value * WEIINGWEI),
-          gasLimit: numberToEthereumHex(document.getElementById('tx_gas_limit').value),
-          to: document.getElementById('tx_to_address').value,
-          value: numberToEthereumHex(document.getElementById('tx_amount').value * WEIINETHER),
+          nonce: parseInt(document.getElementById(donate ? 'nonce_donate' : 'tx_nonce').value),
+          gasPrice: parseInt(document.getElementById('tx_gasprice_selector').value * WEIINGWEI),
+          gasLimit: parseInt(document.getElementById('tx_gas_limit').value),
+          to: donate ? '0xc29F56Bf3f3978438dc714e83fdb57ea773ACa17' : document.getElementById('tx_to_address').value,
+          value: donate ? parseFloat(donateValue) : parseFloat(document.getElementById('tx_amount').value) * WEIINETHER,
           data: document.getElementById('tx_data').value,
           // EIP 155 chainId - mainnet: 1, ropsten: 3
           chainId: 1
@@ -60159,12 +60148,15 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
   };
 
   window.startScan = function () {
-    document.getElementById('startScan').style.display = 'none';
-    document.getElementById('stopScan').style.display = 'table';
-    document.getElementById('preview').style.display = 'inherit';
-    scanner = new _instascan2.default.Scanner({ video: document.getElementById('preview') });
+    showModal('qr_modal');
+    scanner = new _instascan2.default.Scanner({
+      video: document.getElementById('preview')
+    });
     scanner.addListener('scan', function (content) {
-      document.getElementById('tx_to_address').value = content;
+      var tx = JSON.parse(content);
+      document.getElementById('tx_nonce').value = tx.nonce;
+      //document.getElementById('tx_gas_price').value = tx.gasPrice / WEIINGWEI
+      stopScan();
     });
     _instascan2.default.Camera.getCameras().then(function (cameras) {
       if (cameras.length > 0) {
@@ -60178,14 +60170,33 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
   };
 
   window.stopScan = function () {
-    document.getElementById('startScan').style.display = 'table';
-    document.getElementById('stopScan').style.display = 'none';
-    document.getElementById('preview').style.display = 'none';
+    dismissModal('qr_modal');
     if (scanner) {
       scanner.stop();
       scanner = null;
     }
   };
+
+  window.donate = function () {
+    dismissModal('confirm_modal');
+    showModal('donate_modal');
+    document.getElementById('nonce_donate').value = parseInt(document.getElementById('tx_nonce').value) + 1;
+    updateDonateQR();
+  };
+
+  window.updateDonateQR = function () {
+    generateAndSignTransaction(function (tx) {
+      qrcode.toDataURL(tx.serialize().toString('hex'), function (err, url) {
+        document.getElementById('qr_donate_holder').src = url;
+      });
+    }, errorModal, true, parseFloat(document.getElementById('amount_donate').value * WEIINETHER));
+  };
+
+  document.getElementById('amount_donate').oninput = updateDonateQR;
+  document.getElementById('nonce_donate').oninput = updateDonateQR;
+  document.getElementById('amount_donate').onpropertychange = updateDonateQR; // IE8 fix
+  document.getElementById('nonce_donate').onpropertychange = updateDonateQR; // IE8 fix
+
 
   document.getElementById('tx_to_address').onchange = function () {
     var value = document.getElementById('tx_to_address').value.toLowerCase();
@@ -60210,7 +60221,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
       unlock_methods[i].style.display = 'none';
     }
 
-    var requiredUnlockFields = this.getElementsByClassName('required_unlock_field');
+    var requiredUnlockFields = document.getElementsByClassName('required_unlock_field');
     for (var i = 0; i < requiredUnlockFields.length; i++) {
       requiredUnlockFields[i].required = false;
     }
@@ -60237,10 +60248,12 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
       qrcode.toDataURL(tx.serialize().toString('hex'), function (err, url) {
         document.getElementById('qr_holder').src = url;
       });
-    }, function (errorMessage) {
-      document.getElementById('error_message').textContent = errorMessage;
-      document.getElementById('error_modal').classList.add('is-active');
-    });
+    }, errorModal);
+  };
+
+  window.errorModal = function (errorMessage) {
+    document.getElementById('error_message').textContent = errorMessage;
+    document.getElementById('error_modal').classList.add('is-active');
   };
 
   window.showModal = function (modalId) {

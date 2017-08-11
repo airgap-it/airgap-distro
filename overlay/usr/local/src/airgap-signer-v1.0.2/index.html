@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>AirGap.it - Offline Ethereum Signer</title>
     <link rel="stylesheet" href="./static/styles/bulma.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         .modal-background {
             background-color: grey;
@@ -19,26 +20,36 @@
             -webkit-box-shadow: inset hsla(0, 0%, 100%, .5) 0 2px 2px, inset rgba(0, 0, 0, .6) 0 -1px 8px;
             box-shadow: inset 0 2px 2px hsla(0, 0%, 100%, .5), inset 0 -1px 8px rgba(0, 0, 0, .6);
         }
+
+        ::placeholder {
+            color: rgba(0, 0, 0, .2);
+        }
+
+        .navbar-brand > .navbar-item {
+            padding-left: 0;
+        }
     </style>
 </head>
 
 <body>
 <nav class="navbar ">
-    <div class="navbar-brand">
-        <a class="navbar-item" href="#">
-            <img src="./static/images/airgap_logo.png" height="28">
-        </a>
-        <div class="navbar-menu">
-            <div class="navbar-start">
-                <a href="#" class="navbar-item">
-                    Signer
-                </a>
-            </div>
+    <div class="container">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="#">
+                <img src="./static/images/airgap_logo.png" height="28">
+            </a>
+            <div class="navbar-menu">
+                <div class="navbar-start">
+                    <a href="#" class="navbar-item">
+                        Signer
+                    </a>
+                </div>
 
-            <div class="navbar-end">
-                <a href="#" class="navbar-item" onclick="showModal('disclaimer_modal')">
-                    Disclaimer
-                </a>
+                <div class="navbar-end">
+                    <a href="#" class="navbar-item" onclick="showModal('disclaimer_modal')">
+                        Disclaimer
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -50,7 +61,6 @@
             An opensource easy to review Ethereum transaction signer. Intended to be used for air-gapped setups.
         </h2>
 
-        <video id="preview" style="height:400px;width:100%;display:none;"></video>
         <br/>
 
         <form id="transaction_form">
@@ -73,8 +83,6 @@
                             <p class="control">
                                 <a id="startScan" class="button is-info" onclick="startScan()"
                                    style="display:table;margin: 0 auto;">Scan QR</a>
-                                <a id="stopScan" class="button is-danger" onclick="stopScan()"
-                                   style="display:none;margin: 0 auto;">Stop</a>
                             </p>
                         </div>
                     </div>
@@ -83,43 +91,57 @@
 
             <br/>
 
-            <div class="field">
-                <label class="label">Amount to Send</label>
-                <div class="field has-addons">
-                    <p class="control is-expanded">
-                        <input required id="tx_amount" class="input" type="number" placeholder="0.01">
-                    </p>
-                    <p class="control">
-                        <a class="button is-static">
-                            ETH
-                        </a>
-                    </p>
+
+            <div class="columns">
+                <div class="column">
+                    <div class="field">
+                        <label class="label">Amount to Send</label>
+                        <div class="field has-addons">
+                            <p class="control is-expanded">
+                                <input required id="tx_amount" class="input" type="number" placeholder="0.01"
+                                       step="any">
+                            </p>
+                            <p class="control">
+                                <a class="button is-static">
+                                    ETH
+                                </a>
+                            </p>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="field">
-                <label class="label">Gas Limit</label>
-                <p class="control">
-                    <input required id="tx_gas_limit" class="input" type="number" placeholder="21000" value="21000">
-                </p>
-            </div>
-            <div class="field">
-                <label class="label">Gas Price</label>
-                <div class="field has-addons">
-                    <p class="control is-expanded">
-                        <input required id="tx_gas_price" class="input" type="number" placeholder="1" value="1">
-                    </p>
-                    <p class="control">
-                        <a class="button is-static">
-                            GWEI
-                        </a>
-                    </p>
+                <div class="column">
+                    <div class="field">
+                        <label class="label">Gas Limit</label>
+                        <p class="control">
+                            <input required id="tx_gas_limit" class="input" type="number" placeholder="21000"
+                                   value="21000">
+                        </p>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="field">
+                        <label class="label">Gas Price</label>
+                        <p class="control">
+                        <div class="select is-fullwidth">
+                            <select id="tx_gasprice_selector">
+                                <option value="1">1 GWEI (slower)</option>
+                                <option value="5">5 GWEI (slow)</option>
+                                <option selected value="10">10 GWEI (normal)</option>
+                                <option value="20">20 GWEI (fast)</option>
+                                <option value="40">40 GWEI (faster)</option>
+                            </select>
+                        </div>
+                        </p>
+                    </div>
                 </div>
             </div>
             <div class="field">
                 <label class="label">Nonce</label>
-                <p class="control">
-                    <input required id="tx_nonce" class="input" type="number" placeholder="1">
-                </p>
+                <div class="field has-addons">
+                    <p class="control is-expanded">
+                        <input required id="tx_nonce" class="input" type="number" placeholder="1">
+                    </p>
+                </div>
             </div>
             <div class="field">
                 <label class="label">Data (optional)</label>
@@ -158,7 +180,8 @@
                         <p class="control">
                             <input id="mnemonic_unlock_derivation_path" class="input required_unlock_field"
                                    type="text"
-                                   placeholder="m/44'/60'/0'/0" value="m/44'/60'/0'/0">
+                                   placeholder="m/44'/60'/0'/0/0"
+                                   value="m/44'/60'/0'/0/0">
                         </p>
                         <label class="label">Passphrase (optional)</label>
                         <p class="control">
@@ -222,7 +245,6 @@
     <div class="modal-card">
         <header class="modal-card-head">
             <p class="modal-card-title">Your Signed Transaction</p>
-            <button class="delete" onclick="dismissModal('confirm_modal')"></button>
         </header>
         <section class="modal-card-body">
             <div class="columns is-fullwidth">
@@ -253,8 +275,20 @@
             </div>
         </section>
         <footer class="modal-card-foot">
-            <a class="button" onclick="dismissModal('error_modal')">Cancel</a>
+            <a class="button" onclick="dismissModal('confirm_modal')">Cancel</a>
+            <a class="button" onclick="donate()">Donate</a>
         </footer>
+    </div>
+</div>
+
+<div id="qr_modal" class="modal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title">Scan QR</p>
+            <button class="delete" onclick="stopScan()"></button>
+        </header>
+        <video id="preview" style="height:400px;width:100%;"></video>
     </div>
 </div>
 
@@ -343,12 +377,58 @@
     </div>
 </div>
 
+
+<div id="donate_modal" class="modal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title">Help us</p>
+            <button class="delete" onclick="dismissModal('donate_modal')"></button>
+        </header>
+        <section class="modal-card-body">
+            <p>
+                Make a gift to support our effort in developing free and open source software. Through the generosity of
+                people like you, our work can make a difference.
+            </p>
+
+            <br/>
+
+            <div class="field">
+                <label class="label">Amount to Donate</label>
+                <div class="field has-addons">
+                    <p class="control is-expanded">
+                        <input required id="amount_donate" value="0.1" class="input" type="number" placeholder="0.01">
+                    </p>
+                    <p class="control">
+                        <a class="button is-static">
+                            ETH
+                        </a>
+                    </p>
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="label">Nonce</label>
+                <div class="field has-addons">
+                    <p class="control is-expanded">
+                        <input required id="nonce_donate" class="input" type="number" placeholder="1">
+                    </p>
+                </div>
+            </div>
+
+            <figure class="image is-square">
+                <img id="qr_donate_holder" src="#">
+            </figure>
+        </section>
+    </div>
+</div>
+
 <script src="static/bundle.js"></script>
 <footer class="footer">
     <div class="container">
         <div class="content has-text-centered">
             <p>
-                <strong>AirGap.it</strong> v.1.0.1. The source code is licensed MIT.
+                <strong>AirGap.it</strong> v.1.0.2. The source code is licensed MIT.
             </p>
         </div>
     </div>
