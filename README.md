@@ -1,17 +1,20 @@
-# AirGap.it
+# AirGap Vault Distribution
 
-The Most Secure And Practical Way To Do Crypto Transactions. With AirGap you can now be your own bank.
+AirGap Vault Distribution can be started from a CDROM or an USB stick on a computer and being used to sign air gapped transactions. The AirGap Vault Distribution is the equivalent of the mobile version of [AirGap Vault](https://github.com/airgap-it/airgap-vault), use the mobile app [AirGap Wallet](https://github.com/airgap-it/airgap-wallet) to broadcast transactions.
 
-## Installing AirGap on a USB stick or CDROM
+## Setup AirGap Vault Distribution
+### Copy AirGap Vault Distribution to a CDROM or USB stick
 
-AirGap on CDROM: use your favorite program to burn the ISO to CDROM.
+**CDROM:**  
+use your favorite program to burn the ISO to CDROM.
 Nothing special. CDROMs are naturally read-only and tamper resistant.
 
-AirGap on USB: If you don't burn AirGap to a CDROM, writing AirGap to a
+**USB:**  
+If you don't burn AirGap to a CDROM, writing AirGap Vault to a
 USB stick with a hardware read-write toggle (e.g., Kanguru FlashBlu) is
 the next best thing.
 
-On USB sticks without write protection, you can remove AirGap USB after
+On USB sticks without write protection, you can remove the AirGap Vault USB after
 booting as an additional security measure. AirGap loads into RAM so
 after booting you no longer need the USB.
 
@@ -28,7 +31,7 @@ sdf                                8:80   1   7.4G  1 disk
 └─sdf1                             8:81   1   444M  1 part 
 ```
 
-## How to build from source
+### How to build from source
 
 AirGap is built with `TKLDev`_, the TurnKey GNU/Linux build system.
 
@@ -42,6 +45,18 @@ $ git-clone https://github.com/airgap-it/airgap-distro.git
 $ cd airgap-distro
 $ make
 ```
+
+## How to create and sign transactions
+
+1) Import your mnemonic phrase or generate a new one
+2) Add a new wallet ex. Ethereum with the standard or your desired derivation path
+3) Sync the wallet address over QR with your AirGap Wallet app
+4) Create a new transaction within the AirGap Wallet app
+5) Scan the transaction QR code with the AirGap Vault Distribution
+6) Sign the transaction within AirGap Vault Distribution
+7) Scan the signed transaction QR code with AirGap Wallet
+8) Confirm and broadcast the transaction with AirGap Wallet
+
 ## Credits
 
 This project was inspired by BitKey. The distribution as well as this readme have been created based on their work.
