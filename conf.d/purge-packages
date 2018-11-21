@@ -1,7 +1,0 @@
-#!/bin/sh
-
-DEBIAN=noninteractive apt-get -y purge authbind curl bsd-mailx bind9-host ethtool hubdns ifupdown iproute iproute2 iptables iputils-ping ethtool libavahi-client3 libavahi-common-data libavahi-common3 libbind9-90 libdiscover2 libdns100 libssh2-1 net-tools netbase ntp ntpdate openssh-client openssh-server openssh-sftp-server resolvconf rsync librsync1 tklbam tklbam-duplicity tklbam-python-boto tklbam-squid tklbam-squid-common traceroute turnkey-pylib turnkey-sysinfo turnkey-version postfix ssh stunnel4 udhcpc webmin* wget
-DEBIAN=noninteractive apt-get -y autoremove
-DEBIAN=noninteractive apt-get -y install ratpoison chromium
-DEBIAN=noninteractive apt-get -y clean
-rm -rf /var/lib/apt/lists/* 
