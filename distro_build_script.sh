@@ -68,7 +68,7 @@ EOFCHROOT
 systemctl enable x11
 
 
-cp rm -rf /lib/modules/**/kernel/net
+rm -rf /lib/modules/**/kernel/net
 rm -rf /var/lib/{apt,dpkg,cache,log}/
 rm -rf /usr/share/man
 rm -rf /usr/share/doc

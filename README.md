@@ -33,17 +33,16 @@ sdf                                8:80   1   7.4G  1 disk
 
 ### How to build from source
 
-AirGap is built with `TKLDev`_, the TurnKey GNU/Linux build system.
+AirGap is built with `Vagrant`
 
-1) Deploy TKLDev (e.g., as a local VM)
-2) SSH into TKLDev and clone the AirGap git repo:
+1) Install Vagrant
 
 ```
-$ ssh tkldev
-$ cd products
-$ git-clone https://github.com/airgap-it/airgap-distro.git 
+$ git clone https://github.com/airgap-it/airgap-distro.git 
 $ cd airgap-distro
-$ make
+$ vagrant up --provision # build the distro, will be in /tmp/airgap-vault-distro.iso
+$ vagrant ssh-config 
+$ scp -i .vagrant/machines/default/virtualbox/private_key -P 2222 vagrant@127.0.0.1:/tmp/airgap-vault-distro.iso .
 ```
 
 ## How to create and sign transactions
